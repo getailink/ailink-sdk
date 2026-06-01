@@ -1,0 +1,38 @@
+# Source code
+src/
+tests/
+examples/
+docs/
+
+# Config files
+.env
+.env.example
+.env.local
+tsconfig.json
+jest.config.js
+jest.setup.js
+
+# Scripts
+push-github.sh
+push-npm.sh
+
+# Coverage
+coverage/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Git
+.gitignore
+.gitattributes
+
+# Proof files
+tests-passed proof
