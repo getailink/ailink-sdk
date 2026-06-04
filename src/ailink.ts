@@ -3,7 +3,7 @@
 // This is what developers import and use.
 // ─────────────────────────────────────────────
 
-import { AILinkConfig, AILinkResult, RunOptions, RegisterOptions, ToolOptions, ProviderName, Message } from './types'
+import { AILinkConfig, AILinkResult, RunOptions, RegisterOptions, ToolOptions, ProviderName, Message, WrapOptions } from './types'
 import { AILinkConfigError, AllProvidersFailedError, EmptyGroupError } from './errors'
 import { FunctionRegistry } from './registry'
 import { Engine } from './engine'
@@ -205,6 +205,82 @@ export class AILink {
   /** Remove a registered tool */
   unregister(name: string): void {
     this.registry.unregister(name)
+  }
+
+  /**
+   * Wrap any async function with AILink observability.
+   * The returned function behaves identically to the original —
+   * same arguments, same return type, same errors.
+   * Every call is tracked through the AILink platform automatically.
+   *
+   * Use this for LangChain chains, Vercel AI functions, or any
+   * existing async function you want dashboard visibility on
+   * without modifying the original code.
+   *
+   * @param fn      - Any async function to wrap
+   * @param options - Optional metadata for dashboard visibility
+   *
+   * @example
+   * // Simple — works but logs as 'anonymous' if fn.name is empty
+   * const wrapped = ai.wrap(chain.invoke.bind(chain))
+   *
+   * @example
+   * // Full dashboard visibility
+   * const wrapped = ai.wrap(chain.invoke.bind(chain), {
+   *   toolName: 'ProductRagChain',
+   *   role: 'admin'
+   * })
+   */
+  wrap<TArgs extends any[], TReturn>(
+    fn: (...args: TArgs) => Promise<TReturn>,
+    options?: WrapOptions
+  ): (...args: TArgs) => Promise<TReturn> {
+    // Resolve display name — .bind() destroys fn.name so we fall back to 'anonymous'
+    const resolvedName = options?.toolName ?? (fn.name || 'anonymous')
+    // Resolve role — defaults to 'user' for tracking purposes only
+    const resolvedRole = options?.role ?? 'user'
+
+    // Return a wrapper with the identical signature as the original function
+    return async (...args: TArgs): Promise<TReturn> => {
+      const startTime = Date.now()
+      try {
+        // Call the original function — no modification, no interception of args
+        const result = await fn(...args)
+
+        // Track successful execution
+        this.tracker.track({
+          platformKey: this.config.platformKey,
+          prompt: resolvedName,
+          toolsCalled: [resolvedName],
+          allowedTools: [resolvedName],
+          provider: this.config.provider,
+          executionTime: Date.now() - startTime,
+          success: true,
+          timestamp: new Date().toISOString(),
+          userRole: resolvedRole,
+          groups: null
+        })
+
+        return result
+      } catch (err: any) {
+        // Track failure — then re-throw so the caller still receives the error
+        this.tracker.track({
+          platformKey: this.config.platformKey,
+          prompt: resolvedName,
+          toolsCalled: [resolvedName],
+          allowedTools: [resolvedName],
+          provider: this.config.provider,
+          executionTime: Date.now() - startTime,
+          success: false,
+          error: err?.message ?? 'Unknown error',
+          timestamp: new Date().toISOString(),
+          userRole: resolvedRole,
+          groups: null
+        })
+
+        throw err
+      }
+    }
   }
 }
 

@@ -1,10 +1,12 @@
 # AILink SDK
 
 Your app already has the functions. AILink makes them AI-callable.
+Use LangChain, Vercel AI SDK, or any other SDK without touching your existing code. AILink makes that possible.
 
 No rewrites. No restructuring. Register once, your users talk to your app in natural language.
 
 **Works with:** OpenAI · Claude · Groq · Gemini
+**Use alongside:** LangChain · Vercel AI SDK · any existing SDK — zero rewrites
 
 ```bash
 npm install @ailink/sdk
@@ -20,6 +22,7 @@ npm install @ailink/sdk
 - [Quick Start](#quick-start)
 - [Core Features](#core-features)
   - [Function Registration](#function-registration)
+  - [Wrapping External SDKs](#wrapping-external-sdks)
   - [Multi-Provider Support](#multi-provider-support)
   - [Fallback Providers](#fallback-providers)
   - [Role-Based Access Control](#role-based-access-control)
@@ -28,6 +31,7 @@ npm install @ailink/sdk
   - [Parallel Tool Execution](#parallel-tool-execution)
   - [Configurable Iteration Limit](#configurable-iteration-limit)
   - [Chat Widget](#chat-widget)
+  - [Managing Tools](#managing-tools)
 - [Configuration Reference](#configuration-reference)
 - [Result Object](#result-object)
 - [Error Handling](#error-handling)
@@ -72,6 +76,7 @@ console.log(result.response)
 | Feature | AILink | Vercel AI SDK | LangChain |
 |---|---|---|---|
 | Works with existing code — no rewrites | ✅ | ❌ | ❌ |
+| Use any external SDK without touching your code | ✅ | ❌ | ❌ |
 | Role-based tool filtering — built in | ✅ | ❌ | ❌ |
 | Group-based tool filtering | ✅ | ❌ | ❌ |
 | Automatic fallback providers | ✅ | Via AI Gateway only | ✅ |
@@ -168,6 +173,60 @@ ai.register('functionName', async (args) => {
   }
 })
 ```
+
+---
+
+### Wrapping External SDKs
+
+Every other SDK makes you rewrite your code to use it. AILink does not. `ai.wrap()` sits on top of any async function from any SDK — LangChain, Vercel AI SDK, Hugging Face, or anything else. Your existing code stays exactly as it is. Their code stays exactly as it is.
+
+**Already using LangChain or another SDK:**
+Keep using it exactly as you are. One line wraps it with AILink tracking and observability. Nothing underneath changes.
+
+```typescript
+// Your existing LangChain chain — not touching this
+const chain = prompt.pipe(model).pipe(new StringOutputParser())
+
+// Wrap it with AILink — one line, nothing changes
+const wrapped = ai.wrap(chain.invoke.bind(chain), {
+  toolName: 'ProductRagChain',
+  role: 'admin'
+})
+
+// Call it exactly as before — now tracked through AILink
+const result = await wrapped({ question: 'What is the return policy?' })
+```
+
+**Want to add a new SDK to your existing project:**
+Register your existing functions with `ai.register()` as normal. Wrap the new SDK's function with `ai.wrap()`. Both work together. Zero rewrites anywhere.
+
+```typescript
+// Your existing functions — registered as normal, not touched
+ai.register('checkStock', async ({ productId }) => checkStock(productId), {
+  description: 'Check stock levels',
+  parameters: { type: 'object', properties: { productId: { type: 'string' } }, required: ['productId'] }
+})
+
+// New SDK function — wrapped with ai.wrap(), registered as a tool
+const searchDocs = ai.wrap(retriever.getRelevantDocuments.bind(retriever), {
+  toolName: 'DocumentSearch'
+})
+
+// Both work together — AI picks which to call
+const result = await ai.run('Check stock for laptop-001 and find the return policy')
+```
+
+Simple mode — zero configuration, works immediately:
+```typescript
+const wrapped = ai.wrap(anyAsyncFunction)
+```
+
+`WrapOptions`:
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `toolName` | `string` | `fn.name` or `'anonymous'` | Name shown on AILink dashboard. Always set this when wrapping `.bind()` calls — `.bind()` destroys the native function name |
+| `role` | `RoleName` | `'user'` | Role used for tracking context only — not access control |
 
 ---
 
@@ -327,7 +386,7 @@ const result = await ai.run('Give me the full profile for user-123')
 
 ### Usage Tracking
 
-Every `ai.run()` call can log usage data asynchronously in the background. Logs include: prompt, tools called, provider used, execution time, role, groups, and session ID.
+Every `ai.run()` call and every `ai.wrap()` call logs usage data asynchronously in the background. Logs include: prompt, tools called, provider used, execution time, role, and groups. For `run()` calls, session ID is also logged. For `wrap()` calls, session ID is always `null` — `wrap()` has no session context.
 
 Use `platformUrl` to send logs to any server or dashboard you choose:
 
@@ -390,6 +449,25 @@ export default function App() {
     />
   )
 }
+```
+
+---
+
+### Managing Tools
+
+List all registered tool names:
+
+```typescript
+const names = ai.tools()
+// → ['checkStock', 'processRefund', 'getWeather']
+```
+
+Remove a registered tool at runtime:
+
+```typescript
+ai.unregister('getWeather')
+// The tool is immediately removed from the registry.
+// Any subsequent ai.run() call will no longer have access to it.
 ```
 
 ---
@@ -457,6 +535,7 @@ import {
   AILinkConfigError,
   AllProvidersFailedError,
   EmptyGroupError,
+  ToolAlreadyExistsError,
   ToolNotFoundError,
   ValidationError,
   ToolExecutionError,
@@ -590,6 +669,9 @@ AILink throws `EmptyGroupError` immediately, before making any provider calls.
 
 **What happens when maxIterations is reached?**
 The engine stops the loop and returns whatever response it has. No crash, no hanging.
+
+**Can I use LangChain, Vercel AI SDK, or any other SDK alongside AILink?**
+Yes. Use `ai.wrap()` to wrap any async function from any SDK. Your existing code stays exactly as it is. Their code stays exactly as it is. AILink sits on top of everything. No rewrites. No restructuring. Any SDK. Any function. Zero changes.
 
 ---
 

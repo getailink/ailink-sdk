@@ -378,8 +378,8 @@ describe('Tracker (Usage Logging)', () => {
   describe('Non-Blocking Behavior', () => {
     it('should complete immediately without waiting for network', async () => {
       const slowPromise = new Promise<{ ok: boolean }>(resolve => {
-        // Intentionally never resolve immediately
-        setTimeout(() => resolve({ ok: true }), 10000);
+        // Never resolves — simulates a permanently hanging network request.
+        // No timer needed. No open handles. Jest exits cleanly after this test.
       });
 
       const mockFetch = jest.fn().mockReturnValue(slowPromise);

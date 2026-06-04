@@ -98,6 +98,26 @@ export interface AILinkResult {
   groups: string[] | null
 }
 
+export interface WrapOptions {
+  /**
+   * Name shown in the AILink dashboard for this wrapped function.
+   * Required when wrapping .bind() calls because .bind() destroys
+   * the native function .name property, making dashboard logs unreadable.
+   * Example: 'ProductRagChain', 'SupportChain'
+   * Defaults to fn.name if available, otherwise 'anonymous'
+   */
+  toolName?: string
+
+  /**
+   * Role used for usage tracking only — not for access control.
+   * wrap() is an observability wrapper, not a gatekeeper.
+   * Pass this so your dashboard shows the correct role context
+   * for each wrapped function call.
+   * Defaults to 'user'
+   */
+  role?: RoleName
+}
+
 export interface UsageLog {
   platformKey?: string
   prompt: string

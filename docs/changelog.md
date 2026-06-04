@@ -58,13 +58,45 @@ Initial public release.
 
 ---
 
+## [0.2.0] — 2026-06-04
+
+### Added
+
+- **`ai.wrap()`** — wraps any async function or external SDK chain with AILink observability in one line. The wrapped function behaves identically to the original — same arguments, same return type, same errors. Every call is tracked through the AILink platform automatically.
+
+  Works with LangChain, Vercel AI SDK, or any existing async function. No rewrites. No restructuring. One line on top.
+
+  Simple mode — zero configuration:
+  ```typescript
+  const wrapped = ai.wrap(chain.invoke.bind(chain))
+  ```
+
+  Advanced mode — full dashboard visibility:
+  ```typescript
+  const wrapped = ai.wrap(chain.invoke.bind(chain), {
+    toolName: 'ProductRagChain',
+    role: 'admin'
+  })
+  ```
+
+  WrapOptions:
+  - toolName — name shown on the AILink dashboard. Critical when wrapping .bind() calls because .bind() destroys the native function name. Defaults to fn.name if available, otherwise 'anonymous'
+  - role — role used for tracking context only, not access control. Defaults to 'user'
+
+- **`WrapOptions` interface** — exported from @ailink/sdk. Provides TypeScript autocompletion when passing options to ai.wrap().
+
+### Fixed
+
+- Open timer handle in tracker unit tests caused Jest to force-exit with a worker process warning after every test run. Fixed by replacing the 10 second setTimeout with a never-resolving promise. All 188 unit tests pass cleanly with zero warnings.
+
+---
+
 ## Roadmap
 
 Items planned for future releases — see `POST_LAUNCH.md` for full details.
 
 - `@ailink/logger` — wrap any existing AI SDK client to connect to the AILink platform dashboard
 - `ailink inspect` CLI — visualize registered tools, roles, and groups in the terminal
-- `ailink.wrap()` — wrap any async function from any SDK without changing existing code
 - Decorator support for automatic tool registration
 - `ailink init` CLI wizard — scan a codebase and generate AILink config automatically
 - Streaming response support

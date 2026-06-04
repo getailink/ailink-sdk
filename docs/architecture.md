@@ -71,7 +71,7 @@ When you call `ai.run(prompt)`, this is the exact sequence:
 ## Components
 
 ### AILink (ailink.ts)
-The main class developers interact with. Handles initialization, provider setup, fallback logic, retry logic, and exposes `register()`, `run()`, `createSession()`, `tools()`, and `unregister()`.
+The main class developers interact with. Handles initialization, provider setup, fallback logic, retry logic, and exposes `register()`, `run()`, `wrap()`, `createSession()`, `tools()`, and `unregister()`.
 
 ### Engine (engine.ts)
 Runs the agentic loop. Receives a prompt and tool list, communicates with the provider, executes tools in parallel when needed, and returns the final result. Respects `maxIterations` to prevent infinite loops.
@@ -88,7 +88,7 @@ Maintains conversation history across multiple `run()` calls. Automatically prun
 > Session history is stored in memory. A server restart clears all sessions. Save `session.getHistory()` to a database if you need sessions to survive restarts.
 
 ### Tracker (tracker.ts)
-Sends usage logs to the AILink platform after every `run()` call. Runs asynchronously so it never slows down the response. Logs: prompt, tools called, provider used, execution time, role, groups, session ID.
+Sends usage logs to the AILink platform after every `run()` call and every `wrap()` call. Runs asynchronously so it never slows down the response. Logs: prompt, tools called, provider used, execution time, role, groups, session ID.
 
 ### Providers (providers/)
 Adapters for each AI provider. Each adapter implements the same `ProviderAdapter` interface — `initialize()` and `execute()`. The engine never knows which provider it's talking to.
@@ -202,3 +202,5 @@ Tracker.track() [async, non-blocking]
      ↓
 Return AILinkResult
 ```
+
+> **Note:** `Tracker.track()` also fires for every `ai.wrap()` call — on both success and failure — with the same async, non-blocking behaviour.

@@ -30,7 +30,7 @@ npm run test:coverage
 
 ```
 tests/
-├── unit/           — Tests for individual components (registry, validator, errors, types, tracker)
+├── unit/           — Tests for individual components (registry, validator, errors, types, tracker, wrap, full-audit)
 ├── integration/    — Tests for provider adapters and full AILink flows (mocked providers)
 ├── e2e/            — End-to-end scenario tests (inventory, multi-turn, role-based, error recovery)
 ├── fixtures/       — Shared test data, mock provider responses, tool schemas
@@ -47,7 +47,7 @@ Unit tests cover individual components with no external dependencies. They run f
 npm run test:unit
 ```
 
-Covers: `FunctionRegistry`, `Validator`, error classes, TypeScript types, `Tracker`, and `maxIterations` configuration.
+Covers: `FunctionRegistry`, `Validator`, error classes, TypeScript types, `Tracker`, `AILink.wrap()`, `full-audit` integration coverage, and `maxIterations` configuration.
 
 ---
 
@@ -99,6 +99,7 @@ You only need keys for the providers you want to test. Groq has a free tier — 
 npx ts-node examples/demo.ts
 npx ts-node examples/02-ai-inventory.ts
 npx ts-node examples/03-advanced-ai-inventory.ts
+npx ts-node examples/wrap-langchain-example.ts
 npx ts-node examples/api-endpoint.ts
 ```
 
@@ -114,6 +115,11 @@ npx ts-node examples/demo.ts
 Basic tool calling. Registers 4 tools and runs 4 queries. Good first test to confirm your API key works.
 
 ```bash
+npx ts-node examples/01-simple-inventory.ts
+```
+Simple inventory example without AI. Shows the same functions that the AI-powered examples use, running directly — useful for understanding the baseline before adding AILink.
+
+```bash
 npx ts-node examples/02-ai-inventory.ts
 ```
 AI-powered inventory system. Shows tool registration, natural language queries, order placement, and stock checking across a full conversation.
@@ -124,11 +130,18 @@ npx ts-node examples/03-advanced-ai-inventory.ts
 Advanced scenarios with session memory. Shows the AI retaining context across multiple turns, planning, and intelligent reasoning.
 
 ```bash
+npx ts-node examples/wrap-langchain-example.ts
+```
+AILink + LangChain live proof. Shows ai.wrap() sitting on top of a real LangChain chain with real Groq API calls. Three steps: chain running alone, simple wrap, advanced wrap with full dashboard visibility.
+
+```bash
 npx ts-node examples/api-endpoint.ts
 ```
 Shows how to wire AILink to an Express backend with session persistence across HTTP requests.
 
 All examples require a real API key in your `.env` file. Groq has a free tier — start there.
+
+> The `examples/` folder also contains three markdown reference documents — `BEFORE_AND_AFTER.md`, `README_COMPARISON.md`, and `README_TRANSFORMATION.md` — that show the AILink design rationale and before/after code comparisons. These are not runnable.
 
 > If you are on Groq's free tier, the advanced example makes several API calls in sequence. If you hit a rate limit, wait 60 seconds and run again.
 

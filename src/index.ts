@@ -21,6 +21,7 @@ export type {
   ProviderResponse,
   ToolCall,
   ToolCallRef,   // Fix 6: was missing — used in Message type; must be public
+  WrapOptions,
 } from './types'
 
 export {
