@@ -1,0 +1,24 @@
+name: Feature Request
+description: Suggest an enhancement or new capability
+labels: ['enhancement']
+body:
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use Case
+      description: Describe the problem or limitation this addresses
+    validations:
+      required: true
+  - type: textarea
+    id: proposed_behavior
+    attributes:
+      label: Proposed Behavior
+      description: How should this feature work? Include code example if applicable.
+      render: typescript
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Other approaches or workarounds you have explored
