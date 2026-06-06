@@ -3,7 +3,7 @@
 // This is what developers import and use.
 // ─────────────────────────────────────────────
 
-import { AILinkConfig, AILinkResult, RunOptions, RegisterOptions, ToolOptions, ProviderName, Message, WrapOptions } from './types'
+import { AILinkConfig, AILinkResult, RunOptions, RegisterOptions, ToolOptions, ProviderName, Message, WrapOptions, AILinkTool } from './types'
 import { AILinkConfigError, AllProvidersFailedError, EmptyGroupError } from './errors'
 import { FunctionRegistry } from './registry'
 import { Engine } from './engine'
@@ -118,9 +118,23 @@ export class AILink {
       if (providerName === this.config.provider) {
         currentEngine = this.engine
       } else {
-        const key =
-          this.config.providerKeys?.[providerName as ProviderName] ??
-          this.config.providerKey
+        // Guard against prototype pollution — providerName originates from
+        // user-supplied config and TypeScript's ProviderName constraint is
+        // compile-time only. A plain JS caller could pass '__proto__' or
+        // 'constructor' as a fallback name and reach the object prototype
+        // through a bracket accessor. We use an explicit switch with dot
+        // notation for each known provider — no bracket access, no variable
+        // as a key, no way for unrecognized names to touch the prototype.
+        const lookupProviderKey = (name: string): string | undefined => {
+          switch (name) {
+            case 'openai': return this.config.providerKeys?.openai
+            case 'claude': return this.config.providerKeys?.claude
+            case 'groq': return this.config.providerKeys?.groq
+            case 'gemini': return this.config.providerKeys?.gemini
+            default: return undefined
+          }
+        }
+        const key = lookupProviderKey(providerName) ?? this.config.providerKey
         const fallbackProvider = getProvider(providerName as ProviderName)
         fallbackProvider.initialize(key, this.config.model)
         currentEngine = new Engine(this.registry, fallbackProvider, new Validator(), this.config.debug)
@@ -200,6 +214,11 @@ export class AILink {
   /** List all registered tool names */
   tools(): string[] {
     return this.registry.list()
+  }
+
+  /** Return full definitions for all registered tools */
+  toolDefinitions(): AILinkTool[] {
+    return this.registry.getAll()
   }
 
   /** Remove a registered tool */

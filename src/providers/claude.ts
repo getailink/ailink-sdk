@@ -30,7 +30,20 @@ export class ClaudeAdapter implements ProviderAdapter {
           }],
         }
       }
-      if (msg.role === 'assistant') return { role: 'assistant' as const, content: msg.content }
+      if (msg.role === 'assistant') {
+        if (msg.toolCalls && msg.toolCalls.length > 0) {
+          return {
+            role: 'assistant' as const,
+            content: msg.toolCalls.map(tc => ({
+              type: 'tool_use' as const,
+              id: tc.callId!,
+              name: tc.toolName,
+              input: tc.toolArgs ?? {},
+            })),
+          }
+        }
+        return { role: 'assistant' as const, content: msg.content }
+      }
       return { role: 'user' as const, content: msg.content }
     })
 

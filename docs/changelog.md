@@ -58,6 +58,16 @@ Initial public release.
 
 ---
 
+## [0.2.1] — 2026-06-06
+
+### Fixed
+
+- **Groq provider — missing `tool_choice` and `parallel_tool_calls` fields** — when tools were present, the request sent to Groq was missing the required `tool_choice: 'auto'` and `parallel_tool_calls: false` fields that llama models expect. Without these, some llama model variants would ignore the tool list entirely or behave inconsistently across requests. Both fields are now included whenever `tools.length > 0` and omitted entirely when no tools are present. The fix is conditional — zero-tool requests are not affected.
+
+- **Claude provider — assistant tool-call messages sent as plain strings in multi-turn conversations** — when the AI called a tool and the conversation continued to a second turn, the assistant message containing the tool call was being serialized as a plain string rather than the array of `tool_use` content blocks that Anthropic's API requires. This caused Anthropic to reject Turn 2 requests with a message format error. The fix formats assistant messages that contain `toolCalls` as `content: [{ type: 'tool_use', id, name, input }]` — the exact structure Anthropic expects. Plain assistant messages with no tool calls are unaffected.
+
+---
+
 ## [0.2.0] — 2026-06-04
 
 ### Added

@@ -60,7 +60,7 @@ export class GroqAdapter implements ProviderAdapter {
     const response = await this.client.chat.completions.create({
       model: this.modelName,
       messages: groqMessages,
-      ...(groqTools.length > 0 && { tools: groqTools }),
+      ...(groqTools.length > 0 && { tools: groqTools, tool_choice: 'auto', parallel_tool_calls: false }),
     })
 
     const choice = response.choices[0]
