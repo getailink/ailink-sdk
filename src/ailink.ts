@@ -18,6 +18,7 @@ export class AILink {
   private primaryProvider: ProviderAdapter  // stored separately — never overwritten by fallback
   private tracker: Tracker
   private config: AILinkConfig
+  private resolvedModel: string
 
   constructor(config: AILinkConfig) {
     // platformKey is optional
@@ -25,6 +26,14 @@ export class AILink {
     if (!config.providerKey) throw new AILinkConfigError('providerKey is required')
 
     this.config = config
+    const defaultModels: Record<string, string> = {
+      openai: 'gpt-4o-mini',
+      groq: 'llama-3.3-70b-versatile',
+      claude: 'claude-3-5-haiku-latest',
+      gemini: 'gemini-1.5-flash'
+    }
+    this.resolvedModel = this.config.model ?? defaultModels[this.config.provider] ?? ''
+
     this.registry = new FunctionRegistry()
 
     this.primaryProvider = getProvider(config.provider)
@@ -157,7 +166,9 @@ export class AILink {
             timestamp: new Date().toISOString(),
             sessionId: options?.sessionId,
             userRole: result.userRole,
-            groups: result.groups
+            groups: result.groups,
+            environment: this.config.environment ?? null,
+            model: this.resolvedModel
           })
 
           return { ...result, provider: providerName as ProviderName }
@@ -187,7 +198,9 @@ export class AILink {
       timestamp: new Date().toISOString(),
       sessionId: options?.sessionId,
       userRole: options?.userRole ?? 'user',
-      groups: options?.groups ?? null
+      groups: options?.groups ?? null,
+      environment: this.config.environment ?? null,
+      model: this.resolvedModel
     })
 
     throw new AllProvidersFailedError(attempted)
@@ -277,7 +290,9 @@ export class AILink {
           success: true,
           timestamp: new Date().toISOString(),
           userRole: resolvedRole,
-          groups: null
+          groups: null,
+          environment: this.config.environment ?? null,
+          model: this.resolvedModel
         })
 
         return result
@@ -294,7 +309,9 @@ export class AILink {
           error: err?.message ?? 'Unknown error',
           timestamp: new Date().toISOString(),
           userRole: resolvedRole,
-          groups: null
+          groups: null,
+          environment: this.config.environment ?? null,
+          model: this.resolvedModel
         })
 
         throw err

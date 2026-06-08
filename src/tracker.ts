@@ -12,7 +12,9 @@ export class Tracker {
   ) {}
 
   track(log: UsageLog): void {
+    const id = crypto.randomUUID()
     const payload = {
+      id,
       prompt: log.prompt,
       toolsCalled: log.toolsCalled,
       allowedTools: log.allowedTools,
@@ -23,7 +25,9 @@ export class Tracker {
       timestamp: log.timestamp,
       sessionId: log.sessionId ?? null,
       userRole: log.userRole,
-      groups: log.groups ?? null
+      groups: log.groups ?? null,
+      environment: log.environment ?? null,
+      model: log.model ?? ''
     }
 
     const headers: Record<string, string> = {

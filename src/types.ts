@@ -131,6 +131,8 @@ export interface UsageLog {
   sessionId?: string
   userRole: RoleName
   groups: string[] | null
+  environment?: string | null
+  model?: string
 }
 
 export interface ToolCall {

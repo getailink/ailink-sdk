@@ -222,6 +222,26 @@ describe('Type Definitions', () => {
       expect(log.prompt).toBeDefined();
       expect(log.platformKey).toBeDefined();
     });
+
+    it('should support optional environment and model fields', () => {
+      const log: UsageLog = {
+        platformKey: 'test-key',
+        timestamp: new Date().toISOString(),
+        prompt: 'What is the inventory?',
+        provider: 'gemini',
+        userRole: 'user',
+        groups: ['inventory'],
+        toolsCalled: ['checkInventory'],
+        allowedTools: ['checkInventory'],
+        executionTime: 245,
+        success: true,
+        environment: 'staging',
+        model: 'llama-3.3-70b-versatile',
+      };
+
+      expect(log.environment).toBe('staging');
+      expect(log.model).toBe('llama-3.3-70b-versatile');
+    });
   });
 
   describe('ProviderResponse Interface', () => {

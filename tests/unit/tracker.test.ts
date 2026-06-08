@@ -436,4 +436,150 @@ describe('Tracker (Usage Logging)', () => {
       expect(url).toContain('custom.platform.com');
     });
   });
+
+  describe('New Tracking Fields', () => {
+    it('should always include a unique id', () => {
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+      });
+      global.fetch = mockFetch;
+
+      const log: UsageLog = {
+        platformKey: 'test-key',
+        prompt: 'test prompt',
+        toolsCalled: [],
+        allowedTools: [],
+        provider: 'gemini',
+        userRole: 'user',
+        executionTime: 100,
+        success: true,
+        timestamp: new Date().toISOString(),
+        groups: [],
+      };
+
+      tracker.track(log);
+      tracker.track(log);
+
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      const body1 = JSON.parse(mockFetch.mock.calls[0][1].body);
+      const body2 = JSON.parse(mockFetch.mock.calls[1][1].body);
+
+      expect(body1.id).toBeDefined();
+      expect(typeof body1.id).toBe('string');
+      expect(body1.id).not.toBe('');
+
+      expect(body2.id).toBeDefined();
+      expect(typeof body2.id).toBe('string');
+      expect(body2.id).not.toBe('');
+
+      expect(body1.id).not.toBe(body2.id);
+    });
+
+    it('should pass environment: null when environment is missing', () => {
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+      });
+      global.fetch = mockFetch;
+
+      const log: UsageLog = {
+        platformKey: 'test-key',
+        prompt: 'test prompt',
+        toolsCalled: [],
+        allowedTools: [],
+        provider: 'gemini',
+        userRole: 'user',
+        executionTime: 100,
+        success: true,
+        timestamp: new Date().toISOString(),
+        groups: [],
+      };
+
+      tracker.track(log);
+
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(body.environment).toBeNull();
+    });
+
+    it('should pass correct environment when specified', () => {
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+      });
+      global.fetch = mockFetch;
+
+      const log: UsageLog = {
+        platformKey: 'test-key',
+        prompt: 'test prompt',
+        toolsCalled: [],
+        allowedTools: [],
+        provider: 'gemini',
+        userRole: 'user',
+        executionTime: 100,
+        success: true,
+        timestamp: new Date().toISOString(),
+        groups: [],
+        environment: 'production',
+      };
+
+      tracker.track(log);
+
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(body.environment).toBe('production');
+    });
+
+    it('should pass correct model when specified', () => {
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+      });
+      global.fetch = mockFetch;
+
+      const log: UsageLog = {
+        platformKey: 'test-key',
+        prompt: 'test prompt',
+        toolsCalled: [],
+        allowedTools: [],
+        provider: 'gemini',
+        userRole: 'user',
+        executionTime: 100,
+        success: true,
+        timestamp: new Date().toISOString(),
+        groups: [],
+        model: 'gpt-4o-mini',
+      };
+
+      tracker.track(log);
+
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(body.model).toBe('gpt-4o-mini');
+    });
+
+    it('should fall back to empty string when model is missing', () => {
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+      });
+      global.fetch = mockFetch;
+
+      const log: UsageLog = {
+        platformKey: 'test-key',
+        prompt: 'test prompt',
+        toolsCalled: [],
+        allowedTools: [],
+        provider: 'gemini',
+        userRole: 'user',
+        executionTime: 100,
+        success: true,
+        timestamp: new Date().toISOString(),
+        groups: [],
+      };
+
+      tracker.track(log);
+
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(body.model).toBe('');
+    });
+  });
 });
