@@ -242,6 +242,26 @@ describe('Type Definitions', () => {
       expect(log.environment).toBe('staging');
       expect(log.model).toBe('llama-3.3-70b-versatile');
     });
+
+    it('should support optional promptTokens and completionTokens fields', () => {
+      const log: UsageLog = {
+        platformKey: 'test-key',
+        timestamp: new Date().toISOString(),
+        prompt: 'What is the inventory?',
+        provider: 'gemini',
+        userRole: 'user',
+        groups: ['inventory'],
+        toolsCalled: ['checkInventory'],
+        allowedTools: ['checkInventory'],
+        executionTime: 245,
+        success: true,
+        promptTokens: 200,
+        completionTokens: 80,
+      };
+
+      expect(log.promptTokens).toBe(200);
+      expect(log.completionTokens).toBe(80);
+    });
   });
 
   describe('ProviderResponse Interface', () => {

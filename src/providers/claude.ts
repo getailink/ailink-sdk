@@ -64,6 +64,9 @@ export class ClaudeAdapter implements ProviderAdapter {
       ...(anthropicTools.length > 0 && { tools: anthropicTools }),
     })
 
+    const promptTokens = response.usage?.input_tokens ?? null
+    const completionTokens = response.usage?.output_tokens ?? null
+
     // Handle parallel tool calls
     const toolUseBlocks = response.content.filter(b => b.type === 'tool_use') as Anthropic.ToolUseBlock[]
 
@@ -72,7 +75,9 @@ export class ClaudeAdapter implements ProviderAdapter {
         type: 'tool_call',
         toolName: toolUseBlocks[0].name,
         toolArgs: toolUseBlocks[0].input as Record<string, any>,
-        callId: toolUseBlocks[0].id
+        callId: toolUseBlocks[0].id,
+        promptTokens,
+        completionTokens
       }
     }
 
@@ -83,11 +88,13 @@ export class ClaudeAdapter implements ProviderAdapter {
           toolName: b.name,
           toolArgs: b.input as Record<string, any>,
           callId: b.id
-        }))
+        })),
+        promptTokens,
+        completionTokens
       }
     }
 
     const textBlock = response.content.find(b => b.type === 'text') as Anthropic.TextBlock | undefined
-    return { type: 'text', text: textBlock?.text ?? '' }
+    return { type: 'text', text: textBlock?.text ?? '', promptTokens, completionTokens }
   }
 }

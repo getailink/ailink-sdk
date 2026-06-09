@@ -73,6 +73,9 @@ export class GeminiAdapter implements ProviderAdapter {
     const result = await chat.sendMessage(lastMessage.content)
     const response = result.response
 
+    const promptTokens = response.usageMetadata?.promptTokenCount ?? null
+    const completionTokens = response.usageMetadata?.candidatesTokenCount ?? null
+
     // Handle parallel tool calls
     const functionCalls = response.functionCalls?.() ?? []
 
@@ -81,7 +84,9 @@ export class GeminiAdapter implements ProviderAdapter {
         type: 'tool_call',
         toolName: functionCalls[0].name,
         toolArgs: functionCalls[0].args as Record<string, any>,
-        callId: `gemini-call-0`  // Gemini doesn't provide IDs — assign sequential ones
+        callId: `gemini-call-0`,  // Gemini doesn't provide IDs — assign sequential ones
+        promptTokens,
+        completionTokens
       }
     }
 
@@ -92,10 +97,12 @@ export class GeminiAdapter implements ProviderAdapter {
           toolName: fc.name,
           toolArgs: fc.args as Record<string, any>,
           callId: `gemini-call-${i}`  // Sequential IDs for parallel calls
-        }))
+        })),
+        promptTokens,
+        completionTokens
       }
     }
 
-    return { type: 'text', text: response.text() }
+    return { type: 'text', text: response.text(), promptTokens, completionTokens }
   }
 }

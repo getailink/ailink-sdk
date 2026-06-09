@@ -58,6 +58,9 @@ export class OpenAIAdapter implements ProviderAdapter {
       ...(openaiTools.length > 0 && { tools: openaiTools }),
     })
 
+    const promptTokens = response.usage?.prompt_tokens ?? null
+    const completionTokens = response.usage?.completion_tokens ?? null
+
     const choice = response.choices[0]
 
     if (choice.message.tool_calls && choice.message.tool_calls.length > 0) {
@@ -68,7 +71,9 @@ export class OpenAIAdapter implements ProviderAdapter {
           type: 'tool_call',
           toolName: call.function.name,
           toolArgs: JSON.parse(call.function.arguments || '{}'),
-          callId: call.id
+          callId: call.id,
+          promptTokens,
+          completionTokens
         }
       }
       // Parallel tool calls
@@ -78,10 +83,12 @@ export class OpenAIAdapter implements ProviderAdapter {
           toolName: call.function.name,
           toolArgs: JSON.parse(call.function.arguments || '{}'),
           callId: call.id
-        }))
+        })),
+        promptTokens,
+        completionTokens
       }
     }
 
-    return { type: 'text', text: choice.message.content || '' }
+    return { type: 'text', text: choice.message.content || '', promptTokens, completionTokens }
   }
 }

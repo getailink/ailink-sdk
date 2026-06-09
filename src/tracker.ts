@@ -27,7 +27,9 @@ export class Tracker {
       userRole: log.userRole,
       groups: log.groups ?? null,
       environment: log.environment ?? null,
-      model: log.model ?? ''
+      model: log.model ?? '',
+      promptTokens: log.promptTokens ?? null,
+      completionTokens: log.completionTokens ?? null
     }
 
     const headers: Record<string, string> = {

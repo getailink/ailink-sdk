@@ -63,6 +63,9 @@ export class GroqAdapter implements ProviderAdapter {
       ...(groqTools.length > 0 && { tools: groqTools, tool_choice: 'auto', parallel_tool_calls: false }),
     })
 
+    const promptTokens = response.usage?.prompt_tokens ?? null
+    const completionTokens = response.usage?.completion_tokens ?? null
+
     const choice = response.choices[0]
 
     if (choice.message.tool_calls && choice.message.tool_calls.length > 0) {
@@ -72,7 +75,9 @@ export class GroqAdapter implements ProviderAdapter {
           type: 'tool_call',
           toolName: call.function.name,
           toolArgs: JSON.parse(call.function.arguments || '{}'),
-          callId: call.id
+          callId: call.id,
+          promptTokens,
+          completionTokens
         }
       }
       return {
@@ -81,10 +86,12 @@ export class GroqAdapter implements ProviderAdapter {
           toolName: call.function.name,
           toolArgs: JSON.parse(call.function.arguments || '{}'),
           callId: call.id
-        }))
+        })),
+        promptTokens,
+        completionTokens
       }
     }
 
-    return { type: 'text', text: choice.message.content || '' }
+    return { type: 'text', text: choice.message.content || '', promptTokens, completionTokens }
   }
 }

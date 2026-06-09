@@ -582,4 +582,91 @@ describe('Tracker (Usage Logging)', () => {
       expect(body.model).toBe('');
     });
   });
+
+  describe('Token Tracking Fields', () => {
+    it('should pass tokens to payload when specified', () => {
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+      });
+      global.fetch = mockFetch;
+
+      const log: UsageLog = {
+        platformKey: 'test-key',
+        prompt: 'test prompt',
+        toolsCalled: [],
+        allowedTools: [],
+        provider: 'gemini',
+        userRole: 'user',
+        executionTime: 100,
+        success: true,
+        timestamp: new Date().toISOString(),
+        groups: [],
+        promptTokens: 150,
+        completionTokens: 42,
+      };
+
+      tracker.track(log);
+
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(body.promptTokens).toBe(150);
+      expect(body.completionTokens).toBe(42);
+    });
+
+    it('should pass tokens as null when omitted', () => {
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+      });
+      global.fetch = mockFetch;
+
+      const log: UsageLog = {
+        platformKey: 'test-key',
+        prompt: 'test prompt',
+        toolsCalled: [],
+        allowedTools: [],
+        provider: 'gemini',
+        userRole: 'user',
+        executionTime: 100,
+        success: true,
+        timestamp: new Date().toISOString(),
+        groups: [],
+      };
+
+      tracker.track(log);
+
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(body.promptTokens).toBeNull();
+      expect(body.completionTokens).toBeNull();
+    });
+
+    it('should pass tokens as null when explicitly null', () => {
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+      });
+      global.fetch = mockFetch;
+
+      const log: UsageLog = {
+        platformKey: 'test-key',
+        prompt: 'test prompt',
+        toolsCalled: [],
+        allowedTools: [],
+        provider: 'gemini',
+        userRole: 'user',
+        executionTime: 100,
+        success: true,
+        timestamp: new Date().toISOString(),
+        groups: [],
+        promptTokens: null,
+        completionTokens: null,
+      };
+
+      tracker.track(log);
+
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(body.promptTokens).toBeNull();
+      expect(body.completionTokens).toBeNull();
+    });
+  });
 });

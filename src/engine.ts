@@ -18,6 +18,8 @@ export interface EngineResult {
   executionTime: number
   userRole: RoleName
   groups: string[] | null
+  promptTokens?: number | null
+  completionTokens?: number | null
 }
 
 export class Engine {
@@ -61,9 +63,18 @@ export class Engine {
     const toolsCalled: string[] = []
 
     // ── Step 3: Agentic loop ────────────────────────────────────────
+    let totalPromptTokens: number | null = null
+    let totalCompletionTokens: number | null = null
     const maxIterations = this.config.maxIterations ?? 10
     for (let i = 0; i < maxIterations; i++) {
       const response = await this.provider.execute(history, toolSchemas)
+
+      if (response.promptTokens != null) {
+        totalPromptTokens = (totalPromptTokens ?? 0) + response.promptTokens
+      }
+      if (response.completionTokens != null) {
+        totalCompletionTokens = (totalCompletionTokens ?? 0) + response.completionTokens
+      }
 
       // Final text — done
       if (response.type === 'text') {
@@ -74,7 +85,9 @@ export class Engine {
           allowedTools: allowedToolNames,
           executionTime: Date.now() - startTime,
           userRole: role,
-          groups: groups ?? null
+          groups: groups ?? null,
+          promptTokens: totalPromptTokens,
+          completionTokens: totalCompletionTokens
         }
       }
 
@@ -169,7 +182,9 @@ export class Engine {
       allowedTools: allowedToolNames,
       executionTime: Date.now() - startTime,
       userRole: role,
-      groups: groups ?? null
+      groups: groups ?? null,
+      promptTokens: totalPromptTokens,
+      completionTokens: totalCompletionTokens
     }
   }
 }

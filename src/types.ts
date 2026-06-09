@@ -96,6 +96,8 @@ export interface AILinkResult {
   provider: ProviderName
   userRole: RoleName
   groups: string[] | null
+  promptTokens?: number | null
+  completionTokens?: number | null
 }
 
 export interface WrapOptions {
@@ -133,6 +135,8 @@ export interface UsageLog {
   groups: string[] | null
   environment?: string | null
   model?: string
+  promptTokens?: number | null
+  completionTokens?: number | null
 }
 
 export interface ToolCall {
@@ -148,6 +152,8 @@ export interface ProviderResponse {
   toolArgs?: Record<string, any>
   callId?: string
   toolCalls?: ToolCall[]
+  promptTokens?: number | null
+  completionTokens?: number | null
 }
 
 export interface ValidationResult {

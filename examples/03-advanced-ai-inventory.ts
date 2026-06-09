@@ -30,9 +30,8 @@ class AdvancedAIInventorySystem {
     this.system = new SimpleInventorySystem()
     
     this.ai = new AILink({
-      apiKey: 'inventory-ai-key',
       provider: 'groq',
-      providerKey: providerKey,
+      providerKey: providerKey || 'inventory-ai-key',
       debug: true,
     })
 

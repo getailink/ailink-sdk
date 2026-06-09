@@ -168,7 +168,9 @@ export class AILink {
             userRole: result.userRole,
             groups: result.groups,
             environment: this.config.environment ?? null,
-            model: this.resolvedModel
+            model: this.resolvedModel,
+            promptTokens: result.promptTokens ?? null,
+            completionTokens: result.completionTokens ?? null
           })
 
           return { ...result, provider: providerName as ProviderName }
@@ -200,7 +202,9 @@ export class AILink {
       userRole: options?.userRole ?? 'user',
       groups: options?.groups ?? null,
       environment: this.config.environment ?? null,
-      model: this.resolvedModel
+      model: this.resolvedModel,
+      promptTokens: null,
+      completionTokens: null
     })
 
     throw new AllProvidersFailedError(attempted)
@@ -292,7 +296,9 @@ export class AILink {
           userRole: resolvedRole,
           groups: null,
           environment: this.config.environment ?? null,
-          model: this.resolvedModel
+          model: this.resolvedModel,
+          promptTokens: null,
+          completionTokens: null
         })
 
         return result
@@ -311,7 +317,9 @@ export class AILink {
           userRole: resolvedRole,
           groups: null,
           environment: this.config.environment ?? null,
-          model: this.resolvedModel
+          model: this.resolvedModel,
+          promptTokens: null,
+          completionTokens: null
         })
 
         throw err
