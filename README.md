@@ -633,6 +633,8 @@ Every `ai.run()` and `session.run()` returns:
   provider: ProviderName  // Which provider was used (may differ from primary if fallback triggered)
   userRole: RoleName      // Role used for this request
   groups: string[] | null // Groups used for filtering, or null if none specified
+  promptTokens: number | null   // Input tokens used — null if provider did not return usage data
+  completionTokens: number | null // Output tokens used — null if provider did not return usage data
 }
 ```
 
@@ -648,7 +650,9 @@ console.log(result)
 // →   executionTime: 834,
 // →   provider: 'groq',
 // →   userRole: 'admin',
-// →   groups: null
+// →   groups: null,
+// →   promptTokens: 312,
+// →   completionTokens: 28
 // → }
 ```
 

@@ -2,7 +2,7 @@
 // AILink + LangChain — ai.wrap() Live Example
 // Proves: your LangChain chain runs untouched.
 // AILink tracks it in one line. Zero rewrites.
-// Run: ts-node examples/wrap-langchain-example.ts
+// Run: npx ts-node examples/wrap-langchain-example.ts
 // ─────────────────────────────────────────────
 
 import { AILink } from '../src'

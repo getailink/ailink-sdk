@@ -7,6 +7,22 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.3.0] — 2026-06-09
+
+### Added
+
+- **Token usage tracking** — every `ai.run()` call now captures prompt and completion token counts from all four providers (OpenAI, Claude, Groq, Gemini). Values are accumulated across all engine loop iterations so multi-tool requests report total tokens for the full agentic loop, not just the final response. Returned on `AILinkResult` as `promptTokens: number | null` and `completionTokens: number | null`. `null` when the provider did not return usage data for that call.
+
+- **`promptTokens` and `completionTokens` on `AILinkResult`** — both fields are now returned from every `ai.run()` and `session.run()` call, giving callers direct access to token usage without reading the platform dashboard.
+
+- **Request ID tracking** — the tracker generates a unique `id` per log entry using `crypto.randomUUID()`. Every usage log sent to the platform now includes a unique identifier for deduplication and tracing.
+
+- **Environment tracking** — `environment` from `AILinkConfig` (`'development' | 'staging' | 'production'`) is now included in every usage log. Separates platform analytics by deployment context automatically.
+
+- **Model name tracking** — the resolved model name is now included in every usage log. Captures the actual model used — the developer-configured override if set, or the provider's default otherwise.
+
+---
+
 ## [0.1.0] — 2026-05-29
 
 Initial public release.

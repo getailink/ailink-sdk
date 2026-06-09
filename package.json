@@ -1,6 +1,6 @@
 {
   "name": "@ailink/sdk",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Turn any existing function into an AI-callable tool. Wrap any external SDK — LangChain, Vercel AI, and more — without touching your existing code. Multi-provider, role-based access, session memory, parallel execution, and automatic fallbacks.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

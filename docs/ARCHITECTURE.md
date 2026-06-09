@@ -105,8 +105,13 @@ interface UsageLog {
   success: boolean
   error?: string
   timestamp: ISO 8601
+  sessionId: string | null // null — wrap() has no session context
   userRole: RoleName       // 'user' by default
-  groups: null
+  groups: null             // wrap() has no group context
+  environment: string | null // from AILink config
+  model: string            // resolved model name
+  promptTokens: null       // wrap() has no token data — always null
+  completionTokens: null   // wrap() has no token data — always null
 }
 ```
 
@@ -136,9 +141,9 @@ interface Provider {
 
 ```typescript
 type ProviderResponse =
-  | { type: 'text', text: string }
-  | { type: 'tool_call', toolName: string, toolArgs: Record<string, any> }
-  | { type: 'tool_calls', toolCalls: ToolCall[] }
+  | { type: 'text', text: string, promptTokens?: number | null, completionTokens?: number | null }
+  | { type: 'tool_call', toolName: string, toolArgs: Record<string, any>, promptTokens?: number | null, completionTokens?: number | null }
+  | { type: 'tool_calls', toolCalls: ToolCall[], promptTokens?: number | null, completionTokens?: number | null }
 ```
 
 **Provider implementations:**
@@ -169,7 +174,7 @@ type ProviderResponse =
      - Append tool results to history
      - Loop again (provider reads history, makes next decision)
 3. **Termination:** Max iterations reached or text response returned
-4. **Output:** AILinkResult (response, tools called, execution time, provider)
+4. **Output:** AILinkResult (response, tools called, execution time, provider, token usage)
 
 **Parallel execution:** Multiple tool_calls handled concurrently via `Promise.all()`.
 
@@ -258,12 +263,17 @@ Logs usage data asynchronously without blocking execution.
 **What's logged:**
 
 - User prompt
+- Unique request ID (generated per log entry)
 - Tools called
 - Tools available (for filtering context)
 - Provider used
+- Model name
 - Execution time
+- Token usage (prompt tokens and completion tokens)
 - User role
+- Session ID
 - Groups used
+- Environment (development / staging / production)
 - Success/failure status
 - Timestamp
 
@@ -279,17 +289,23 @@ Content-Type: application/json
 **Payload:**
 
 ```typescript
-interface UsageLog {
+{
+  id: string               // Unique identifier — generated per log entry
   prompt: string
   toolsCalled: string[]
   allowedTools: string[]
   provider: ProviderName
   executionTime: number
   success: boolean
-  error?: string
+  error: string | null
   timestamp: ISO 8601
+  sessionId: string | null
   userRole: RoleName
   groups: string[] | null
+  environment: string | null
+  model: string
+  promptTokens: number | null
+  completionTokens: number | null
 }
 ```
 
